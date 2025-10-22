@@ -1,0 +1,24 @@
+{
+  "name": "oidc-pkce-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend",
+    "apps/backend-passport-strategies",
+    "apps/frontend-passport-strategies"
+  ],
+  "scripts": {
+    "frontend:dev": "npm --workspace apps/frontend run dev",
+    "backend:dev": "npm --workspace apps/backend run start:dev",
+    "backend2:dev": "npm --workspace apps/backend-passport-strategies run start:dev",
+    "frontend2:dev": "npm --workspace apps/frontend-passport-strategies run dev",
+    "frontend:build": "npm --workspace apps/frontend run build",
+    "backend:build": "npm --workspace apps/backend run build",
+    "backend2:build": "npm --workspace apps/backend-passport-strategies run build",
+    "dev": "npm run backend:dev & npm run frontend:dev",
+    "dev2": "npm run backend2:dev & npm run frontend2:dev"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
