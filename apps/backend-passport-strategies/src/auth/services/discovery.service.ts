@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Issuer } from 'openid-client';
-import { AuthConfigService } from './auth-config.service.js';
+import { AuthConfigService } from './auth-config.service';
 
 @Injectable()
 export class DiscoveryService {

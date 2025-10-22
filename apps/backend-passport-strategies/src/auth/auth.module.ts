@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller.js';
 import { LocalUsernameStrategy } from './strategies/local-username.strategy.js';
 import { LocalEmailStrategy } from './strategies/local-email.strategy.js';
@@ -11,13 +11,32 @@ import { AzureCceJwtStrategy } from './strategies/azure-cce-jwt.strategy.js';
 import { AnyAuthGuard } from './guards/any-auth.guard.js';
 import { SessionSyncMiddleware } from './middleware/session-sync.middleware.js';
 import { OidcService } from './services/oidc.service.js';
-import { PublicCookieService } from './services/public-cookie.service.js';
+import { CookieService } from './services/cookie.service.js';
 import { AuthConfigService } from './services/auth-config.service.js';
 import { GetTokenByUserService } from './services/get-token-by-user.service.js';
 import { DiscoveryService } from './services/discovery.service.js';
+import { CceTokenService } from './services/cce.service.js';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [ConfigModule, PassportModule.register({ session: true })],
+  imports: [
+    ConfigModule,
+    PassportModule.register({ session: true }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const secret = config.getOrThrow<string>('SESSION_SECRET');
+        return {
+          secret,
+          signOptions: {
+            algorithm: 'HS256',
+            expiresIn: '1h',
+          },
+        };
+      },
+    }),
+  ],
   controllers: [AuthController],
   providers: [
     DiscoveryService,
@@ -30,10 +49,11 @@ import { DiscoveryService } from './services/discovery.service.js';
     AnyAuthGuard,
     SessionSyncMiddleware,
     OidcService,
+    CceTokenService,
     GetTokenByUserService,
-    PublicCookieService,
+    CookieService,
     AuthConfigService,
   ],
-  exports: [AnyAuthGuard, SessionSyncMiddleware, PublicCookieService, AuthConfigService],
+  exports: [AnyAuthGuard, SessionSyncMiddleware, CookieService, AuthConfigService],
 })
 export class AuthModule {}

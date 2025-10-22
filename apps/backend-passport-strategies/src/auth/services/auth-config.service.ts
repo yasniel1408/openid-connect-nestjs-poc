@@ -20,10 +20,10 @@ export class AuthConfigService {
     return raw.split(',').map((s) => s.trim()).filter(Boolean);
   }
 
-  getProviderSetting(provider: string, base: string): string | undefined {
+  getProviderSetting(provider: string, base: string): string {
     const specific = this.config.getOrThrow<string>(`${base}_${provider}`);
     if (specific) return specific;
-    return this.config.getOrThrow<string>(base) ?? undefined;
+    return this.config.getOrThrow<string>(base);
   }
 
   getIssuer(provider: string): string {

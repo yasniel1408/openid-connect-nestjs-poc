@@ -1,10 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-openidconnect';
+import { Strategy as OpenIdConnectStrategy } from 'passport-openidconnect';
 import { AuthConfigService } from '../services/auth-config.service.js';
 
 @Injectable()
-export class OidcGoogleStrategy extends PassportStrategy(Strategy, 'oidc-google') {
+export class OidcGoogleStrategy extends PassportStrategy(OpenIdConnectStrategy, 'oidc-google') {
   constructor(@Inject(AuthConfigService) authConfig: AuthConfigService) {
     const issuer = authConfig.getProviderSetting('google', 'OIDC_ISSUER') ?? authConfig.getProviderSetting('google', 'OIDC_ISSUER_URL') ?? 'https://accounts.google.com';
     const clientID = authConfig.getProviderSetting('google', 'OIDC_CLIENT_ID');

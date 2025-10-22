@@ -1,10 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-openidconnect';
+import { Strategy as OpenIdConnectStrategy } from 'passport-openidconnect';
 import { AuthConfigService } from '../services/auth-config.service.js';
 
 @Injectable()
-export class OidcAzureStrategy extends PassportStrategy(Strategy, 'oidc-azure') {
+export class OidcAzureStrategy extends PassportStrategy(OpenIdConnectStrategy, 'oidc-azure') {
   constructor(@Inject(AuthConfigService) authConfig: AuthConfigService) {
     const issuer = authConfig.getProviderSetting('azure', 'OIDC_ISSUER') ?? authConfig.getProviderSetting('azure', 'OIDC_ISSUER_URL') ?? 'https://login.microsoftonline.com/common/v2.0';
     if (!issuer) {

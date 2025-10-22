@@ -1,60 +1,57 @@
-import { Inject, Injectable } from '@nestjs/common';
+// auth/azure-cce.strategy.ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
-import { passportJwtSecret } from 'jwks-rsa';
-import { AuthConfigService } from '../services/auth-config.service.js';
+import { Strategy } from 'passport-custom';
+import type { Request } from 'express';
+import * as jose from 'jose';// 1) webcrypto para jose si tu runtime lo requiere
+import { ChainedTokenCredential, TokenCredential } from '@azure/identity';
 
-function tenantFromIssuer(issuer?: string): string | undefined {
-  if (!issuer) return undefined;
-  const match = issuer.match(/[0-9a-fA-F-]{36}/);
-  return match ? match[0] : undefined;
-}
+// 2) Cargar env
+const EXPECTED_ISSUER = process.env.OIDC_ISSUER_azure!;
+const JWKS_URL = process.env.OIDC_CCE_JWKS_URL_azure!;
+const EXPECTED_AUDIENCE = process.env.OIDC_CCE_AUDIENCE_azure; // opcional
+
+// 3) JWKS singleton con caché interno
+const JWKS = jose.createRemoteJWKSet(new URL(JWKS_URL));
 
 @Injectable()
-export class AzureCceJwtStrategy extends PassportStrategy(JwtStrategy, 'oidc-azure-cce') {
-  constructor(@Inject(AuthConfigService) authConfig: AuthConfigService) {
-    const issuer = authConfig.getProviderSetting('azure', 'OIDC_ISSUER') ?? authConfig.getProviderSetting('azure', 'OIDC_ISSUER_URL');
-    const tenant = tenantFromIssuer(issuer);
-    if (!tenant) {
-      throw new Error('OIDC_ISSUER_azure must include the tenant GUID');
+export class AzureCceJwtStrategy extends PassportStrategy(Strategy, 'azure-cce-jwt') {
+  constructor() { super(); }
+
+  async validate(req: Request) {
+    try {
+      const auth = req.headers.authorization ?? req.headers.Authorization as any;
+      if (!auth || !String(auth).toLowerCase().startsWith('bearer '))
+        throw new UnauthorizedException('NO_TOKEN');
+
+      const token = String(auth).slice(7).trim();
+      if (!token) throw new UnauthorizedException('INVALID_TOKEN_FORMAT');
+
+      const { payload, protectedHeader } = await jose.jwtVerify(token, JWKS, {
+        issuer: EXPECTED_ISSUER,
+        audience: EXPECTED_AUDIENCE || undefined, // si lo seteás, se valida
+        typ: 'JWT',
+        algorithms: ['RS256'],
+        clockTolerance: 5,
+      });
+
+      // Chequeos extra como en tu código previo
+      if (payload.ver !== '2.0') throw new UnauthorizedException('ONLY_V2');
+      // Si querés forzar tenant:
+      if (payload.tid !== '981e0bff-7621-452e-8fb8-b9e4e9964e85') throw new UnauthorizedException('TENANT');
+
+      return {
+        id: payload.sub,
+        appId: (payload as any).appid ?? (payload as any).azp,
+        iss: payload.iss,
+        aud: payload.aud,
+        roles: Array.isArray(payload.roles) ? payload.roles : [],
+        scopes: typeof payload.scp === 'string' ? payload.scp.split(' ') : [],
+        claims: payload,
+        alg: protectedHeader.alg,
+      };
+    } catch (e: any) {
+      throw new UnauthorizedException(e?.message ?? 'TOKEN_VERIFICATION_FAILED');
     }
-
-    const relaxAudience = authConfig.getBoolean('OIDC_RELAX_AUDIENCE_azure', true);
-    const audience = relaxAudience ? undefined : authConfig.getProviderSetting('azure', 'OIDC_AUDIENCE') || undefined;
-
-    const issuers = [
-      `https://login.microsoftonline.com/${tenant}/v2.0`,
-      `https://sts.windows.net/${tenant}/`,
-    ];
-
-    const jwksUri = `https://login.microsoftonline.com/${tenant}/discovery/v2.0/keys`;
-
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKeyProvider: passportJwtSecret({
-        jwksUri,
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 10,
-      }) as any,
-      algorithms: ['RS256'],
-      issuer: issuers,
-      audience,
-      ignoreExpiration: false,
-      clockTolerance: 60,
-    });
-  }
-
-  async validate(payload: any) {
-    return {
-      callerAppId: payload.appid ?? payload.azp,
-      roles: payload.roles ?? [],
-      tenantId: payload.tid,
-      audience: payload.aud,
-      identityProvider: 'aad',
-      id: payload.sub,
-      name: payload.name,
-      email: payload.email || payload.preferred_username,
-    };
   }
 }

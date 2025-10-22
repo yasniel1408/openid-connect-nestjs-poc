@@ -19,6 +19,5 @@
     "dev": "npm run backend:dev & npm run frontend:dev",
     "dev2": "npm run backend2:dev & npm run frontend2:dev"
   },
-  "devDependencies": {},
   "dependencies": {}
 }

@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Issuer, Client, generators } from 'openid-client';
-import { AuthConfigService } from './auth-config.service.js';
+import { AuthConfigService } from './auth-config.service';
 
 @Injectable()
 export class OidcService {
@@ -58,7 +58,7 @@ export class OidcService {
 
   async handleCallback(provider: string, params: any, sess: any) {
     const client = await this.getClient(provider);
-    const saved = (sess && sess.oidc && sess.oidc[provider]) || {};
+    const saved = sess?.oidc?.[provider] || {};
     const tokenSet = await client.callback(this.redirectUri(provider), params, {
       state: saved.state,
       nonce: saved.nonce,
@@ -78,20 +78,20 @@ export class OidcService {
         token_type: tokenSet.token_type,
       },
       id: (claims.oid as string) || (claims.sub as string),
-      name: (claims.name as string) || (userinfo as any)?.name,
-      email: (claims.email as string) || (claims.preferred_username as string) || (userinfo as any)?.email,
+      name: (claims.name as string) || userinfo?.name,
+      email: (claims.email as string) || (claims.preferred_username as string) || userinfo?.email,
       identityProvider: claims.iss as string,
       roles: (claims.roles as string[]) || (typeof claims.scp === 'string' ? (claims.scp as string).split(' ') : []),
     };
     sess.user = user;
-    if (sess.oidc && sess.oidc[provider]) delete sess.oidc[provider];
+    if (sess?.oidc?.[provider]) delete sess.oidc[provider];
     return user;
   }
 
   async endSessionUrl(provider: string, idToken: string) {
     const client = await this.getClient(provider);
     const postLogout = this.authConfig.getPostLogoutRedirect();
-    const endSession = (client.issuer.metadata as any).end_session_endpoint as string | undefined;
+    const endSession = client.issuer.metadata.end_session_endpoint as string | undefined;
     if (!endSession) return postLogout;
     const url = new URL(endSession);
     url.searchParams.set('post_logout_redirect_uri', postLogout);

@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers';
+import ProductsClientTrigger from '../../components/ProductsClientTrigger';
 import { getApiBase } from '../../lib/config';
 
 export default function HumanAuthPage() {
@@ -34,6 +36,15 @@ export default function HumanAuthPage() {
             <button type="submit" style={{ padding: '8px 12px' }}>Login</button>
           </form>
         </div>
+      </section>
+      <section style={{ marginTop: 32 }}>
+        <h2>Productos disponibles</h2>
+        <ProductsClientTrigger
+          cookieHeader={cookies()
+            .getAll()
+            .map((x) => `${x.name}=${encodeURIComponent(x.value)}`)
+            .join('; ')}
+        />
       </section>
       <section style={{ marginTop: 24 }}>
         <a href="/">Volver</a>
