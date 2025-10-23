@@ -5,8 +5,8 @@ import { AuthController } from './auth.controller.js';
 import { LocalUsernameStrategy } from './strategies/local-username.strategy.js';
 import { LocalEmailStrategy } from './strategies/local-email.strategy.js';
 import { LocalCodeStrategy } from './strategies/local-code.strategy.js';
-import { OidcAzureStrategy } from './strategies/oidc-azure.strategy.js';
-import { OidcGoogleStrategy } from './strategies/oidc-google.strategy.js';
+import { OidcPkceAzureStrategy } from './strategies/oidc-pkce-azure.strategy.js';
+import { OidcPkceGoogleStrategy } from './strategies/oidc-pkce-google.strategy.js';
 import { AzureCceJwtStrategy } from './strategies/azure-cce-jwt.strategy.js';
 import { AnyAuthGuard } from './guards/any-auth.guard.js';
 import { SessionSyncMiddleware } from './middleware/session-sync.middleware.js';
@@ -43,8 +43,8 @@ import { JwtModule } from '@nestjs/jwt';
     LocalUsernameStrategy,
     LocalEmailStrategy,
     LocalCodeStrategy,
-    OidcAzureStrategy,
-    OidcGoogleStrategy,
+    OidcPkceAzureStrategy,
+    OidcPkceGoogleStrategy,
     AzureCceJwtStrategy,
     AnyAuthGuard,
     SessionSyncMiddleware,

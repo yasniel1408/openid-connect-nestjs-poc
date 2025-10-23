@@ -10,12 +10,12 @@ export class AnyAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
 
-    // Sesión (passport session / OIDC web)
+    // Sesión PKCE
     if (req.isAuthenticated()) return true;
     if (req.user) return true;
     if (req.session.user) return true;
 
-    // Bearer JWT (Entra ID)
+    // Bearer JWT CCE
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
     if (token) {
       const ok = await (this.cceGuard.canActivate(context) as Promise<boolean>);

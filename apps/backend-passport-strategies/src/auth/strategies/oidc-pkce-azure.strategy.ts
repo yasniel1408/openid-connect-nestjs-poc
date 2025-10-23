@@ -4,7 +4,7 @@ import { Strategy as OpenIdConnectStrategy } from 'passport-openidconnect';
 import { AuthConfigService } from '../services/auth-config.service.js';
 
 @Injectable()
-export class OidcAzureStrategy extends PassportStrategy(OpenIdConnectStrategy, 'oidc-azure') {
+export class OidcPkceAzureStrategy extends PassportStrategy(OpenIdConnectStrategy, 'oidc-azure') {
   constructor(@Inject(AuthConfigService) authConfig: AuthConfigService) {
     const issuer = authConfig.getProviderSetting('azure', 'OIDC_ISSUER') ?? authConfig.getProviderSetting('azure', 'OIDC_ISSUER_URL') ?? 'https://login.microsoftonline.com/common/v2.0';
     if (!issuer) {
