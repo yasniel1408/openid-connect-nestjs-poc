@@ -1,6 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AnyAuthGuard } from '../auth/guards/any-auth.guard.js';
-import { AuthGuard } from '@nestjs/passport';
 
 type Product = { id: string; name: string; price: number; currency: string };
 
@@ -14,7 +13,6 @@ const MOCK_PRODUCTS: Product[] = [
 export class ProductsController {
   @Get()
   @UseGuards(AnyAuthGuard)
-  @UseGuards(AuthGuard('azure-cce-jwt'))
   list(): Product[] {
     return MOCK_PRODUCTS;
   }

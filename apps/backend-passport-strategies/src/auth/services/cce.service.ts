@@ -1,6 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { ClientSecretCredential, AccessToken } from '@azure/identity';
+import { Inject, Injectable } from '@nestjs/common';
+import {ClientSecretCredential} from '@azure/identity';
 import { AuthConfigService } from './auth-config.service.js';
+
+type CceTokenResponse =
+  | { access_token: string; token_type: string; expires_in: number; ext_expires_in?: number; scope?: string }
+  | { error: string; error_description?: string };
 
 type CceTokenOptions = {
   provider?: string;
@@ -37,17 +41,29 @@ export class CceTokenService {
     return this.credentials.get(provider)!;
   }
 
-  async getClientCredentialsToken(options: CceTokenOptions = {}): Promise<AccessToken> {
+  async getClientCredentialsToken(options: CceTokenOptions = {}): Promise<CceTokenResponse> {
     const provider = options.provider ?? 'azure';
     const abortMs = options.abortMs ?? 5000;
 
     const issuer = this.auth.getIssuer(provider);
-    const clientId = this.auth.getProviderSetting(provider, 'OIDC_CLIENT_ID')!;
-    const clientSecret = this.auth.getProviderSetting(provider, 'OIDC_CLIENT_SECRET')!;
-    const audience = this.auth.getProviderSetting(provider, 'OIDC_CCE_AUDIENCE')!;
+    const clientId = this.auth.getProviderSetting(provider, 'OIDC_CLIENT_ID');
+    const clientSecret = this.auth.getProviderSetting(provider, 'OIDC_CLIENT_SECRET');
+    const audience = this.auth.getProviderSetting(provider, 'OIDC_AUDIENCE');
+
+    if (!issuer || !clientId || !clientSecret) {
+      return { error: 'config_error', error_description: 'issuer/clientId/clientSecret faltan' };
+    }
 
     const scopeCandidate = options.scope?.trim() || audience;
-    const tenantId = tenantFromIssuer(issuer)!;
+    if (!scopeCandidate) {
+      return { error: 'config_error', error_description: 'scope/audience faltan' };
+    }
+
+    const tenantId = tenantFromIssuer(issuer);
+    if (!tenantId) {
+      return { error: 'config_error', error_description: 'No se pudo derivar tenantId desde issuer' };
+    }
+
     const credential = this.getCredential(provider, tenantId, clientId, clientSecret);
     const scope = ensureDefaultScope(scopeCandidate);
 
@@ -56,11 +72,18 @@ export class CceTokenService {
     timeout.unref?.();
 
     try {
-      const token: AccessToken | null = await credential.getToken(scope, { abortSignal: controller.signal });
+      const token = await credential.getToken(scope, { abortSignal: controller.signal });
       if (!token) {
         return { error: 'no_access_token', error_description: 'Azure Identity no retornó token' };
       }
-      return token;
+      const expiresIn = Math.max(0, Math.floor((token.expiresOnTimestamp - Date.now()) / 1000));
+      return {
+        access_token: token.token,
+        token_type: 'Bearer',
+        expires_in: expiresIn,
+        ext_expires_in: expiresIn,
+        scope,
+      };
     } catch (err: any) {
       const description = err?.message || 'token acquisition failed';
       return { error: 'token_request_failed', error_description: description };

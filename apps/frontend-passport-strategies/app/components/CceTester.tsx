@@ -18,7 +18,7 @@ export function CceTester() {
         credentials: 'include',
       });
       const data = await res.json().catch(() => ({}));
-      if (data?.token) setLastToken(data.token as string);
+      if (data?.access_token) setLastToken(data.access_token as string);
       setResult(JSON.stringify({ status: res.status, body: data }, null, 2));
     } catch (err: any) {
       setResult(`Error solicitando token: ${err?.message || 'fallo desconocido'}`);

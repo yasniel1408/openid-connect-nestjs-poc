@@ -3,6 +3,20 @@
 Este monorepo contiene:
 - apps/frontend: Next.js (App Router) con enlaces al backend.
 - apps/backend: NestJS con módulo de auth (OIDC PKCE via `openid-client` + sesiones) y endpoint protegido `/products`.
+- **apps/backend-passport-strategies**: ⭐ Backend principal con soporte completo para autenticación de usuarios humanos (PKCE) y sistemas (Client Credentials)
+
+## ⚠️ IMPORTANTE: Fix Autenticación Sistema-a-Sistema
+
+Si necesitas autenticación sistema-a-sistema (Client Credentials Flow), revisa:
+
+📖 **[ÍNDICE DE DOCUMENTACIÓN](./INDICE-DOCUMENTACION.md)** - Guía completa de toda la documentación
+
+**Documentos principales:**
+- 📄 **[RESUMEN-EJECUTIVO.md](./RESUMEN-EJECUTIVO.md)** - Resumen de 2 minutos
+- 📄 **[FIX-SISTEMA-A-SISTEMA.md](./FIX-SISTEMA-A-SISTEMA.md)** - Guía de configuración paso a paso
+- 📄 **[ANALISIS-Y-FIX-COMPLETO.md](./ANALISIS-Y-FIX-COMPLETO.md)** - Análisis técnico completo
+
+**TL;DR**: Asegúrate de tener `OIDC_RELAX_AUDIENCE_azure=true` en tu `.env` para que funcione el Client Credentials Flow.
 
 ## Requisitos
 - Node.js 18+
