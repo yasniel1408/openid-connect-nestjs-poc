@@ -6,7 +6,7 @@ import * as jose from 'jose';
 import { AuthConfigService } from '../services/auth-config.service.js';
 
 @Injectable()
-export class AzureCceJwtStrategy extends PassportStrategy(Strategy, 'azure-cce-jwt') {
+export class AzureCceJwtStrategy extends PassportStrategy(Strategy, 'azure-cce-jwt-manual') {
   private readonly provider = 'azure';
   private readonly expectedAudience?: string;
   private jwksV2?: ReturnType<typeof jose.createRemoteJWKSet>;
@@ -56,7 +56,7 @@ export class AzureCceJwtStrategy extends PassportStrategy(Strategy, 'azure-cce-j
         issuer: this.issuerV2,
         clockTolerance: tolerance,
       };
-      
+
       // Solo validar audience si está configurada Y no es modo relax
       if (this.expectedAudience && !relaxAudience) {
         verifyOptions.audience = this.expectedAudience;
@@ -78,7 +78,7 @@ export class AzureCceJwtStrategy extends PassportStrategy(Strategy, 'azure-cce-j
       issuer: this.issuerV1,
       clockTolerance: tolerance,
     };
-    
+
     // Solo validar audience si está configurada Y no es modo relax
     if (this.expectedAudience && !relaxAudience) {
       verifyOptionsV1.audience = this.expectedAudience;

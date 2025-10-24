@@ -7,7 +7,6 @@ import { LocalEmailStrategy } from './strategies/local-email.strategy.js';
 import { LocalCodeStrategy } from './strategies/local-code.strategy.js';
 import { OidcPkceAzureStrategy } from './strategies/oidc-pkce-azure.strategy.js';
 import { OidcPkceGoogleStrategy } from './strategies/oidc-pkce-google.strategy.js';
-import { AzureCceJwtStrategy } from './strategies/azure-cce-jwt.strategy.js';
 import { AnyAuthGuard } from './guards/any-auth.guard.js';
 import { SessionSyncMiddleware } from './middleware/session-sync.middleware.js';
 import { OidcService } from './services/oidc.service.js';
@@ -17,6 +16,8 @@ import { GetTokenByUserService } from './services/get-token-by-user.service.js';
 import { DiscoveryService } from './services/discovery.service.js';
 import { CceTokenService } from './services/cce.service.js';
 import { JwtModule } from '@nestjs/jwt';
+import { AzureCceJwtStrategyV1, AzureCceJwtStrategyV1Legacy } from './strategies/azure-cce-jwt.strategy.OPCION1.js';
+import { AzureCceJwtStrategyV2 } from './strategies/azure-cce-jwt.strategy.OPCION2.js';
 
 @Module({
   imports: [
@@ -45,8 +46,10 @@ import { JwtModule } from '@nestjs/jwt';
     LocalCodeStrategy,
     OidcPkceAzureStrategy,
     OidcPkceGoogleStrategy,
-    AzureCceJwtStrategy,
     AnyAuthGuard,
+    AzureCceJwtStrategyV1,
+    AzureCceJwtStrategyV1Legacy,
+    AzureCceJwtStrategyV2,
     SessionSyncMiddleware,
     OidcService,
     CceTokenService,
