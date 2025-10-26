@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import { CookieService } from '../services/cookie.service.js';
+import { CookieService } from '../services/cookie.service';
 
 @Injectable()
 export class SessionSyncMiddleware {

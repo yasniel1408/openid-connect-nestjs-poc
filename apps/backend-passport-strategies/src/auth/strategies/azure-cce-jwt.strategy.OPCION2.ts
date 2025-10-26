@@ -4,7 +4,7 @@ import { BearerStrategy, IBearerStrategyOptionWithRequest, ITokenPayload } from 
 import { AuthConfigService } from '../services/auth-config.service.js';
 
 /**
- * OPCIÓN 2: Estrategia usando passport-azure-ad oficial de Microsoft
+ * Estrategia usando passport-azure-ad oficial de Microsoft
  *
  * PROS:
  * - Librería oficial de Microsoft
@@ -34,20 +34,14 @@ export class AzureCceJwtStrategyV2 extends PassportStrategy(BearerStrategy, 'azu
     const tenantIdGuid = tenantIdMatch ? tenantIdMatch[0] : 'common';
 
     const options: IBearerStrategyOptionWithRequest = {
-      // Información de Azure AD
       identityMetadata: `https://login.microsoftonline.com/${tenantIdGuid}/v2.0/.well-known/openid-configuration`,
       clientID: clientID,
-
-      // Validación de audience (si relaxAudience es true, no valida)
       validateIssuer: true,
       issuer: issuer,
       audience: relaxAudience ? undefined : audience,
-
-      // Otras opciones
       loggingLevel: 'info',
       passReqToCallback: false,
       clockSkew: clockSkew,
-
       // Scope validation (opcional)
       // scope: ['access_as_user'],
     };
@@ -73,10 +67,7 @@ export class AzureCceJwtStrategyV2 extends PassportStrategy(BearerStrategy, 'azu
         scopes: typeof token.scp === 'string' ? token.scp.split(' ') : [],
         claims: token,
       };
-
       done(null, user);
     });
   }
-
-  // No necesitas implementar validate() porque se maneja en el callback del constructor
 }

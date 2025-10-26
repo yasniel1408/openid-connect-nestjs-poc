@@ -1,22 +1,32 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthController } from './auth.controller.js';
+import { JwtModule } from '@nestjs/jwt';
+
+// Controllers
+import { LocalAuthController } from './controllers/local-auth.controller.js';
+import { OidcAuthController } from './controllers/oidc-auth.controller.js';
+import { JwtAuthController } from './controllers/jwt-auth.controller.js';
+import { CommonAuthController } from './controllers/common-auth.controller.js';
+
+// Strategies
 import { LocalUsernameStrategy } from './strategies/local-username.strategy.js';
-import { LocalEmailStrategy } from './strategies/local-email.strategy.js';
-import { LocalCodeStrategy } from './strategies/local-code.strategy.js';
+import { LocalJwtStrategy } from './strategies/local-jwt.strategy.js';
 import { OidcPkceAzureStrategy } from './strategies/oidc-pkce-azure.strategy.js';
 import { OidcPkceGoogleStrategy } from './strategies/oidc-pkce-google.strategy.js';
-import { SessionSyncMiddleware } from './middleware/session-sync.middleware.js';
+import { AzureCceJwtStrategyV1 } from './strategies/azure-cce-jwt.strategy.js';
+import { AzureCceJwtStrategyV2 } from './strategies/azure-cce-jwt.strategy.OPCION2.js';
+
+// Services
 import { OidcService } from './services/oidc.service.js';
 import { CookieService } from './services/cookie.service.js';
 import { AuthConfigService } from './services/auth-config.service.js';
 import { GetTokenByUserService } from './services/get-token-by-user.service.js';
 import { DiscoveryService } from './services/discovery.service.js';
 import { CceTokenService } from './services/cce.service.js';
-import { JwtModule } from '@nestjs/jwt';
-import { AzureCceJwtStrategyV1, AzureCceJwtStrategyV1Legacy } from './strategies/azure-cce-jwt.strategy.OPCION1.js';
-import { AzureCceJwtStrategyV2 } from './strategies/azure-cce-jwt.strategy.OPCION2.js';
+
+// Middleware & Guards
+import { SessionSyncMiddleware } from './middleware/session-sync.middleware.js';
 import { AnyAuthGuard } from './guards/any-auth.guard.js';
 
 @Module({
@@ -38,24 +48,30 @@ import { AnyAuthGuard } from './guards/any-auth.guard.js';
       },
     }),
   ],
-  controllers: [AuthController],
+  controllers: [
+    LocalAuthController,
+    OidcAuthController,
+    JwtAuthController,
+    CommonAuthController,
+  ],
   providers: [
+    // Services
     DiscoveryService,
-    LocalUsernameStrategy,
-    LocalEmailStrategy,
-    LocalCodeStrategy,
-    OidcPkceAzureStrategy,
-    OidcPkceGoogleStrategy,
-    AnyAuthGuard,
-    AzureCceJwtStrategyV1,
-    AzureCceJwtStrategyV1Legacy,
-    AzureCceJwtStrategyV2,
-    SessionSyncMiddleware,
     OidcService,
     CceTokenService,
     GetTokenByUserService,
     CookieService,
     AuthConfigService,
+    // Strategies
+    LocalUsernameStrategy,
+    LocalJwtStrategy,
+    OidcPkceAzureStrategy,
+    OidcPkceGoogleStrategy,
+    AzureCceJwtStrategyV1,
+    AzureCceJwtStrategyV2,
+    // Middleware & Guards
+    SessionSyncMiddleware,
+    AnyAuthGuard,
   ],
   exports: [AnyAuthGuard, SessionSyncMiddleware, CookieService, AuthConfigService],
 })

@@ -23,18 +23,6 @@ export default function HumanAuthPage() {
             <input type="password" name="password" placeholder="password (axis123)" defaultValue="axis123" />
             <button type="submit" style={{ padding: '8px 12px' }}>Login</button>
           </form>
-          <form method="post" action={`${apiBase}/auth/local/email`} style={{ display: 'grid', gap: 8 }}>
-            <strong>Email/Password</strong>
-            <input name="email" placeholder="email (user@demo.com)" defaultValue="user@demo.com" />
-            <input type="password" name="password" placeholder="password (demo123)" defaultValue="demo123" />
-            <button type="submit" style={{ padding: '8px 12px' }}>Login</button>
-          </form>
-          <form method="post" action={`${apiBase}/auth/human/code`} style={{ display: 'grid', gap: 8 }}>
-            <strong>Código/Password</strong>
-            <input name="code" placeholder="cédula/código (12345678)" defaultValue="12345678" />
-            <input type="password" name="password" placeholder="password (codepass)" defaultValue="codepass" />
-            <button type="submit" style={{ padding: '8px 12px' }}>Login</button>
-          </form>
         </div>
       </section>
       <section style={{ marginTop: 32 }}>

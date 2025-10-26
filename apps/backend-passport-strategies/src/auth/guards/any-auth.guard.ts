@@ -1,25 +1,35 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ExtractJwt } from 'passport-jwt';
+import { cookieExtractor } from '../strategies/local-jwt.strategy';
 
 @Injectable()
 export class AnyAuthGuard implements CanActivate {
-  // AuthGuard(...) devuelve una clase mixin. Hay que instanciarla.
-  private readonly cceGuard = new (AuthGuard('azure-cce-jwt'))();
+  private readonly cceGuard = new (AuthGuard('azure-cce-jwt-v2'))();
+  private readonly jwtGuard = new (AuthGuard('local-jwt'))();
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
 
-    // Sesión PKCE
+    // Session PKCE
     if (req.isAuthenticated()) return true;
     if (req.user) return true;
     if (req.session.user) return true;
 
+    // Session JWT
+    const sessionToken = ExtractJwt.fromExtractors([cookieExtractor])(req);
+    console.log('sessionToken', sessionToken);
+    if (sessionToken) {
+      const ok = await (this.jwtGuard.canActivate(context) as Promise<boolean>);
+      console.log('ok', ok);
+      if (ok) return true;
+    }
+
     // Bearer JWT CCE
-    const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
-    if (token) {
+    const cceToken = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+    if (cceToken) {
       const ok = await (this.cceGuard.canActivate(context) as Promise<boolean>);
-      if (ok) return true; // strategy ya pobló req.user si es válido
+      if (ok) return true;
     }
     return false
   }

@@ -1,12 +1,12 @@
 import { cookies } from 'next/headers';
-import { decodeUserInfo, getApiBase } from './lib/config';
+import { getApiBase } from './lib/config';
 
 export const metadata = { title: 'Passport Strategies Frontend' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const c = cookies();
   const logged = c.get('logged')?.value === 'true';
-  const info = decodeUserInfo(c.get('user_info')?.value);
+  const info = c.get('user_info')?.value;
   const apiBase = getApiBase();
 
   return (
