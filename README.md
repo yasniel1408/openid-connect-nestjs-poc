@@ -5,6 +5,27 @@ Este monorepo contiene:
 - apps/backend: NestJS con módulo de auth (OIDC PKCE via `openid-client` + sesiones) y endpoint protegido `/products`.
 - **apps/backend-passport-strategies**: ⭐ Backend principal con soporte completo para autenticación de usuarios humanos (PKCE) y sistemas (Client Credentials)
 
+## 🚀 Inicio Rápido
+
+### 1. Levantar Redis
+```bash
+docker-compose up -d
+```
+
+### 2. Configurar variables de entorno
+Copia el archivo de ejemplo y ajusta los valores:
+```bash
+cp apps/backend-passport-strategies/.env.example apps/backend-passport-strategies/.env
+```
+
+Asegúrate de tener la variable `REDIS_URL` (por defecto: `redis://localhost:6379`)
+
+### 3. Instalar dependencias e iniciar
+```bash
+npm install
+npm run dev2  # Backend passport + Frontend passport
+```
+
 ## ⚠️ IMPORTANTE: Fix Autenticación Sistema-a-Sistema
 
 Si necesitas autenticación sistema-a-sistema (Client Credentials Flow), revisa:
@@ -17,6 +38,32 @@ Si necesitas autenticación sistema-a-sistema (Client Credentials Flow), revisa:
 - 📄 **[ANALISIS-Y-FIX-COMPLETO.md](./ANALISIS-Y-FIX-COMPLETO.md)** - Análisis técnico completo
 
 **TL;DR**: Asegúrate de tener `OIDC_RELAX_AUDIENCE_azure=true` en tu `.env` para que funcione el Client Credentials Flow.
+
+## 🔧 Redis para Sesiones Persistentes
+
+Las sesiones ahora se guardan en Redis, lo que permite:
+- ✅ Persistencia entre reinicios del servidor
+- ✅ Las cookies funcionan después de reiniciar el backend
+- ✅ Escalabilidad horizontal (múltiples instancias del backend)
+- ✅ TTL automático de sesiones
+
+### Comandos útiles de Redis:
+```bash
+# Ver todas las sesiones
+docker exec -it openid-redis redis-cli KEYS "session:*"
+
+# Ver una sesión específica
+docker exec -it openid-redis redis-cli GET "session:SESSION_ID"
+
+# Limpiar todas las sesiones
+docker exec -it openid-redis redis-cli FLUSHDB
+
+# Detener Redis
+docker-compose down
+
+# Detener y limpiar datos
+docker-compose down -v
+```
 
 ## Requisitos
 - Node.js 18+
