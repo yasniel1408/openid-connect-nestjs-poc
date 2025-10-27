@@ -8,7 +8,7 @@ export class SessionSyncMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const user: any = (req as any).user || (req as any).session?.user;
-    this.publicCookieService.setFromUser(res, user);
+    user&&this.publicCookieService.setFromUser(res, user);
     next();
   }
 }

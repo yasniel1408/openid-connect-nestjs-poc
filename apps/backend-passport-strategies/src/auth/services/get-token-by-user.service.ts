@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class GetTokenByUserService {
-  constructor(@Inject(JwtService) private readonly jwtService: JwtService) {}
+  constructor(@Inject(JwtService) private readonly jwtService: JwtService, @Inject(ConfigService) private readonly config: ConfigService) {}
 
   async execute(user: any, strategy: string) {
     const payload = {
@@ -15,7 +16,8 @@ export class GetTokenByUserService {
 
     return this.jwtService.signAsync(payload, {
       algorithm: 'HS256',
-      issuer: 'axis-local',
+      issuer: this.config.get<string>('JWT_ISSUER', 'axis-backend'),
+      audience: this.config.get<string>('JWT_AUDIENCE', 'axis-api'),
       subject: user.id,
       expiresIn: '1h',
     });

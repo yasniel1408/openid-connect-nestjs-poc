@@ -18,10 +18,8 @@ export class AnyAuthGuard implements CanActivate {
 
     // Session JWT
     const sessionToken = ExtractJwt.fromExtractors([cookieExtractor])(req);
-    console.log('sessionToken', sessionToken);
     if (sessionToken) {
       const ok = await (this.jwtGuard.canActivate(context) as Promise<boolean>);
-      console.log('ok', ok);
       if (ok) return true;
     }
 

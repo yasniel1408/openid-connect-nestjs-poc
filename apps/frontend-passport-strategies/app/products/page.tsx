@@ -6,13 +6,15 @@ type Product = { id: string; name: string; price: number; currency: string };
 export default async function ProductsPage() {
   const apiBase = getApiBase();
   const c = cookies();
-  const cookieHeader = c.getAll().map((x) => `${x.name}=${encodeURIComponent(x.value)}`).join('; ');
+  const cookieHeader = c.getAll().map((x) => `${x.name}=${encodeURIComponent(x.value)}`).join(';');
+  console.log(cookieHeader)
   let products: Product[] = [];
   let error: string | undefined;
   try {
     const res = await fetch(`${apiBase}/products`, {
       headers: cookieHeader ? { Cookie: cookieHeader, Accept: 'application/json' } : { Accept: 'application/json' },
       cache: 'no-store',
+      credentials: 'include'
     });
     if (!res.ok) error = `Error ${res.status}`;
     else products = await res.json();
