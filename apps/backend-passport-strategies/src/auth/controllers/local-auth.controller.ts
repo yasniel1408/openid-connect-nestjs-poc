@@ -13,9 +13,9 @@ export class LocalAuthController {
     @Inject(ConfigService) private readonly config: ConfigService
   ) {}
 
-  @Post('username')
-  @UseGuards(AuthGuard('local-username'))
-  async loginWithUsername(@Req() req: Request, @Res() res: Response, @Body() _body: any) {
+  @Post('login')
+  @UseGuards(AuthGuard('local-session'))
+  async login(@Req() req: Request, @Res() res: Response, @Body() _body: any) {
     const user = req.user;
 
     // Guardar en sesión Redis
@@ -27,10 +27,10 @@ export class LocalAuthController {
     this.publicCookieService.setFromUser(res, user);
 
     // Generar JWT
-    const token = await this.getTokenByUser.execute(user, 'local-username');
+    const token = await this.getTokenByUser.execute(user, 'local-session');
 
     // Establecer cookie con JWT
-    this.publicCookieService.setLoggedIn(res, token, 'local-username');
+    this.publicCookieService.setLoggedIn(res, token, 'local-session');
 
     // Redirigir al frontend
     const corsOrigin = this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000';

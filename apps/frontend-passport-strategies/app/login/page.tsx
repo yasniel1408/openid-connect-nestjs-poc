@@ -23,7 +23,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE}/auth/local/username`, {
+      const response = await fetch(`${API_BASE}/auth/local/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ export default function LoginPage() {
             <strong>Modo Sesión:</strong> Login tradicional con redirect y cookies.
             El backend redirige al frontend después del login.
             <br />
-            Endpoint: <code style={styles.code}>POST /auth/local/username</code>
+            Endpoint: <code style={styles.code}>POST /auth/local/login</code>
           </p>
         ) : (
           <p style={{ margin: 0, fontSize: '0.875rem' }}>

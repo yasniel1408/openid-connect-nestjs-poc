@@ -7,7 +7,7 @@ import type { Request } from 'express';
 
 /**
  * Google OIDC Strategy con PKCE
- * 
+ *
  * ✨ Usa passport-custom + openid-client para capturar tokens completos
  */
 @Injectable()
@@ -31,10 +31,10 @@ export class OidcPkceGoogleStrategy extends PassportStrategy(CustomStrategy, 'oi
 
     console.log(`🔍 Discovering Google OIDC endpoints from: ${issuerUrl}`);
     const issuer = await Issuer.discover(issuerUrl);
-    
-    const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`) 
+
+    const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`)
       || `http://localhost:${this.config.get('PORT', 3001)}/auth/${this.provider}/callback`;
-    
+
     return new issuer.Client({
       client_id: clientId,
       client_secret: clientSecret,
@@ -60,7 +60,7 @@ export class OidcPkceGoogleStrategy extends PassportStrategy(CustomStrategy, 'oi
       session.oidc[this.provider] = { state, nonce, codeVerifier };
 
       const scope = this.config.get<string>(`OIDC_SCOPE_${this.provider}`) || 'openid email profile';
-      const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`) 
+      const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`)
         || `http://localhost:${this.config.get('PORT', 3001)}/auth/${this.provider}/callback`;
 
       const authUrl = client.authorizationUrl({
@@ -81,15 +81,15 @@ export class OidcPkceGoogleStrategy extends PassportStrategy(CustomStrategy, 'oi
     // Manejar callback (hay code)
     if (query.code) {
       const saved = session?.oidc?.[this.provider];
-      
+
       if (!saved) {
         throw new Error('No OAuth state found in session');
       }
 
       try {
-        const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`) 
+        const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`)
           || `http://localhost:${this.config.get('PORT', 3001)}/auth/${this.provider}/callback`;
-        
+
         const tokenSet: TokenSet = await client.callback(
           redirectUri,
           { code: query.code as string, state: query.state as string },
@@ -100,12 +100,7 @@ export class OidcPkceGoogleStrategy extends PassportStrategy(CustomStrategy, 'oi
           }
         );
 
-        console.log(`✅ Tokens received from Google`);
-        console.log(`   - access_token: ${tokenSet.access_token ? 'YES' : 'NO'}`);
-        console.log(`   - id_token: ${tokenSet.id_token ? 'YES' : 'NO'}`);
-        console.log(`   - refresh_token: ${tokenSet.refresh_token ? 'YES' : 'NO'}`);
-
-        const userinfo = tokenSet.access_token 
+        const userinfo = tokenSet.access_token
           ? await client.userinfo(tokenSet.access_token)
           : undefined;
 
@@ -119,7 +114,7 @@ export class OidcPkceGoogleStrategy extends PassportStrategy(CustomStrategy, 'oi
           identityProvider: 'oidc-google',
           provider: this.provider,
           roles: [],
-          
+
           tokens: {
             access_token: tokenSet.access_token,
             id_token: tokenSet.id_token,
@@ -127,7 +122,7 @@ export class OidcPkceGoogleStrategy extends PassportStrategy(CustomStrategy, 'oi
             expires_at: tokenSet.expires_at,
             token_type: tokenSet.token_type || 'Bearer',
           },
-          
+
           claims,
           userinfo,
         };

@@ -8,7 +8,7 @@ const USERS = [
 ];
 
 @Injectable()
-export class LocalUsernameStrategy extends PassportStrategy(Strategy, 'local-username') {
+export class LocalSessionStrategy extends PassportStrategy(Strategy, 'local-session') {
   constructor() {
     super({ usernameField: 'username', passwordField: 'password', passReqToCallback: false });
   }
@@ -16,7 +16,7 @@ export class LocalUsernameStrategy extends PassportStrategy(Strategy, 'local-use
   async validate(username: string, password: string) {
     const u = USERS.find((x) => x.username === username && x.password === password);
     if (!u) return null;
-    return { id: u.id, name: u.name, email: u.email, roles: u.roles, identityProvider: 'local-username' };
+    return { id: u.id, name: u.name, email: u.email, roles: u.roles, identityProvider: 'local-session' };
   }
 }
 

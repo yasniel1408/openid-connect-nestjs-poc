@@ -5,7 +5,7 @@ import { cookieExtractor } from '../strategies/local-jwt.strategy';
 
 @Injectable()
 export class AnyAuthGuard implements CanActivate {
-  private readonly cceGuard = new (AuthGuard('azure-cce-jwt-v2'))();
+  private readonly cceGuard = new (AuthGuard('azure-cce-jwt'))();
   private readonly jwtGuard = new (AuthGuard('local-jwt'))();
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

@@ -53,7 +53,6 @@ export class JwtAuthController {
   @UseGuards(AuthGuard('local-jwt'))
   async refresh(@Req() req: Request, @Res() res: Response) {
     const user = req.user as any;
-    console.log('🔄 Renovando JWT para usuario:', user?.id);
 
     // Generar nuevo JWT
     const newToken = await this.getTokenByUser.execute(user, 'local-jwt');

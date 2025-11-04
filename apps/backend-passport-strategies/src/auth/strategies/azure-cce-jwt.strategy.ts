@@ -1,69 +1,47 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { passportJwtSecret } from 'jwks-rsa';
+import { BearerStrategy, IBearerStrategyOptionWithRequest, ITokenPayload } from 'passport-azure-ad';
 import { ConfigService } from '@nestjs/config';
 
-/**
- * Estrategia simplificada usando passport-jwt + jwks-rsa
- *
- * PROS:
- * - Mucho más simple (60% menos código)
- * - Usa librerías estándar y bien mantenidas
- * - jwks-rsa maneja caché de claves automáticamente
- * - passport-jwt es el estándar de facto
- *
- * CONTRAS:
- * - Necesita configurar dos estrategias separadas para v1 y v2 (si realmente necesitas soportar ambos)
- * - Menos control fino sobre el proceso de verificación
- */
-
 @Injectable()
-export class AzureCceJwtStrategyV1 extends PassportStrategy(JwtStrategy, 'azure-cce-jwt') {
+export class AzureCceJwtStrategy extends PassportStrategy(BearerStrategy, 'azure-cce-jwt') {
   constructor(@Inject(ConfigService) private readonly config: ConfigService) {
     const provider = 'azure';
-    const jwksUri = config.get<string>(`OIDC_CCE_JWKS_URL_${provider}`)
-                 ?? config.get<string>(`OIDC_JWKS_URL_${provider}`)
-                 ?? 'https://login.microsoftonline.com/common/discovery/v2.0/keys';
-
     const issuer = config.get<string>(`OIDC_ISSUER_${provider}`);
+    const clientID = config.get<string>(`OIDC_CLIENT_ID_${provider}`);
     const audience = config.get<string>(`OIDC_AUDIENCE_${provider}`);
     const relaxAudience = config.get<boolean>(`OIDC_RELAX_AUDIENCE_${provider}`, true);
-    const clockTolerance = Number(config.get<string>(`OIDC_CLOCK_TOLERANCE_${provider}`)) || 60;
+    const clockSkew = Number(config.get<string>(`OIDC_CLOCK_TOLERANCE_${provider}`)) || 60;
 
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    // Extraer tenant ID del issuer
+    const tenantIdMatch = issuer?.match(/[0-9a-fA-F-]{36}/);
+    const tenantIdGuid = tenantIdMatch ? tenantIdMatch[0] : 'common';
 
-      // jwks-rsa se encarga de obtener y cachear las claves públicas automáticamente
-      secretOrKeyProvider: passportJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 10,
-        jwksUri,
-      }),
-
-      // Opciones de verificación
-      issuer: issuer,
-      audience: relaxAudience ? undefined : audience,  // Si relaxAudience=true, no valida audience
-      algorithms: ['RS256'],
-      clockTolerance,
-    });
-  }
-
-  /**
-   * Este método es llamado automáticamente después de validar el token
-   * El payload ya está verificado (firma, issuer, audience, exp, etc.)
-   */
-  async validate(payload: any) {
-    return {
-      sub: payload.sub,
-      tid: payload.tid,
-      aud: payload.aud,
-      appId: payload.appid ?? payload.azp,
-      version: payload.ver,
-      roles: Array.isArray(payload.roles) ? payload.roles : [],
-      scopes: typeof payload.scp === 'string' ? payload.scp.split(' ') : [],
-      claims: payload,
+    const options: IBearerStrategyOptionWithRequest = {
+      identityMetadata: `https://login.microsoftonline.com/${tenantIdGuid}/v2.0/.well-known/openid-configuration`,
+      clientID: clientID!,
+      validateIssuer: true,
+      issuer: issuer!,
+      audience: relaxAudience ? undefined : audience,
+      loggingLevel: 'info',
+      passReqToCallback: false,
+      clockSkew: clockSkew,
+      // Scope validation (opcional)
+      // scope: ['access_as_user'],
     };
+
+    super(options, (token: ITokenPayload, done: any) => {
+      const user = {
+        sub: token.sub || token.oid,
+        tid: token.tid,
+        aud: token.aud,
+        appId: token.appid || token.azp,
+        version: token.ver,
+        roles: Array.isArray(token.roles) ? token.roles : [],
+        scopes: typeof token.scp === 'string' ? token.scp.split(' ') : [],
+        claims: token,
+      };
+      done(null, user);
+    });
   }
 }
