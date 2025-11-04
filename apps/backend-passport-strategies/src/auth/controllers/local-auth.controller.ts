@@ -1,16 +1,16 @@
 import { Body, Controller, Post, Req, Res, UseGuards, Inject } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { GetTokenByUserService } from '../services/get-token-by-user.service';
 import { CookieService } from '../services/cookie.service.js';
-import { AuthConfigService } from '../services/auth-config.service';
 
 @Controller('auth/local')
 export class LocalAuthController {
   constructor(
     @Inject(GetTokenByUserService) private readonly getTokenByUser: GetTokenByUserService,
     @Inject(CookieService) private readonly publicCookieService: CookieService,
-    @Inject(AuthConfigService) private readonly authConfig: AuthConfigService
+    @Inject(ConfigService) private readonly config: ConfigService
   ) {}
 
   @Post('username')
@@ -33,6 +33,7 @@ export class LocalAuthController {
     this.publicCookieService.setLoggedIn(res, token, 'local-username');
 
     // Redirigir al frontend
-    return res.redirect(this.authConfig.getCorsOrigin());
+    const corsOrigin = this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000';
+    return res.redirect(corsOrigin);
   }
 }

@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { passportJwtSecret } from 'jwks-rsa';
-import { AuthConfigService } from '../services/auth-config.service.js';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Estrategia simplificada usando passport-jwt + jwks-rsa
@@ -20,16 +20,16 @@ import { AuthConfigService } from '../services/auth-config.service.js';
 
 @Injectable()
 export class AzureCceJwtStrategyV1 extends PassportStrategy(JwtStrategy, 'azure-cce-jwt') {
-  constructor(@Inject(AuthConfigService) private readonly authConfig: AuthConfigService) {
+  constructor(@Inject(ConfigService) private readonly config: ConfigService) {
     const provider = 'azure';
-    const jwksUri = authConfig.getProviderSetting(provider, 'OIDC_CCE_JWKS_URL')
-                 ?? authConfig.getProviderSetting(provider, 'OIDC_JWKS_URL')
+    const jwksUri = config.get<string>(`OIDC_CCE_JWKS_URL_${provider}`)
+                 ?? config.get<string>(`OIDC_JWKS_URL_${provider}`)
                  ?? 'https://login.microsoftonline.com/common/discovery/v2.0/keys';
 
-    const issuer = authConfig.getIssuer(provider);
-    const audience = authConfig.getProviderSetting(provider, 'OIDC_AUDIENCE');
-    const relaxAudience = authConfig.getBoolean(`OIDC_RELAX_AUDIENCE_${provider}`, true);
-    const clockTolerance = Number(authConfig.getProviderSetting(provider, 'OIDC_CLOCK_TOLERANCE')) || 60;
+    const issuer = config.get<string>(`OIDC_ISSUER_${provider}`);
+    const audience = config.get<string>(`OIDC_AUDIENCE_${provider}`);
+    const relaxAudience = config.get<boolean>(`OIDC_RELAX_AUDIENCE_${provider}`, true);
+    const clockTolerance = Number(config.get<string>(`OIDC_CLOCK_TOLERANCE_${provider}`)) || 60;
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {ClientSecretCredential} from '@azure/identity';
-import { AuthConfigService } from './auth-config.service.js';
 
 type CceTokenResponse =
   | { access_token: string; token_type: string; expires_in: number; ext_expires_in?: number; scope?: string }
@@ -32,7 +32,7 @@ function tenantFromIssuer(issuer: string): string | undefined {
 export class CceTokenService {
   private credentials = new Map<string, ClientSecretCredential>();
 
-  constructor(@Inject(AuthConfigService) private readonly auth: AuthConfigService) {}
+  constructor(@Inject(ConfigService) private readonly config: ConfigService) {}
 
   private getCredential(provider: string, tenantId: string, clientId: string, clientSecret: string) {
     if (!this.credentials.has(provider)) {
@@ -45,10 +45,10 @@ export class CceTokenService {
     const provider = options.provider ?? 'azure';
     const abortMs = options.abortMs ?? 5000;
 
-    const issuer = this.auth.getIssuer(provider);
-    const clientId = this.auth.getProviderSetting(provider, 'OIDC_CLIENT_ID');
-    const clientSecret = this.auth.getProviderSetting(provider, 'OIDC_CLIENT_SECRET');
-    const audience = this.auth.getProviderSetting(provider, 'OIDC_AUDIENCE');
+    const issuer = this.config.get<string>(`OIDC_ISSUER_${provider}`);
+    const clientId = this.config.get<string>(`OIDC_CLIENT_ID_${provider}`);
+    const clientSecret = this.config.get<string>(`OIDC_CLIENT_SECRET_${provider}`);
+    const audience = this.config.get<string>(`OIDC_AUDIENCE_${provider}`);
 
     if (!issuer || !clientId || !clientSecret) {
       return { error: 'config_error', error_description: 'issuer/clientId/clientSecret faltan' };

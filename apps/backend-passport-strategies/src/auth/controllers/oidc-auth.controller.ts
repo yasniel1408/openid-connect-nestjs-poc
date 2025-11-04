@@ -2,7 +2,7 @@ import { Controller, Get, Req, Res, UseGuards, Inject } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { CookieService } from '../services/cookie.service.js';
-import { AuthConfigService } from '../services/auth-config.service';
+import { ConfigService } from '@nestjs/config';
 import { GetTokenByUserService } from '../services/get-token-by-user.service';
 
 /**
@@ -28,7 +28,7 @@ import { GetTokenByUserService } from '../services/get-token-by-user.service';
 export class OidcAuthController {
   constructor(
     @Inject(CookieService) private readonly cookieService: CookieService,
-    @Inject(AuthConfigService) private readonly authConfig: AuthConfigService,
+    @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(GetTokenByUserService) private readonly getTokenByUser: GetTokenByUserService
   ) {}
 
@@ -88,7 +88,7 @@ export class OidcAuthController {
     this.cookieService.setLoggedIn(res, token, 'oidc-azure');
 
     // Redirigir al frontend
-    return res.redirect(this.authConfig.getCorsOrigin());
+    return res.redirect(this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000');
   }
 
   // ==========================================
@@ -128,7 +128,7 @@ export class OidcAuthController {
     this.cookieService.setLoggedIn(res, token, 'oidc-google');
 
     // Redirigir al frontend
-    return res.redirect(this.authConfig.getCorsOrigin());
+    return res.redirect(this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000');
   }
 
   // ==========================================

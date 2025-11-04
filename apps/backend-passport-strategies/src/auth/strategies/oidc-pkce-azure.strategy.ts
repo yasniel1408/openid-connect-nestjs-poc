@@ -2,8 +2,8 @@ import { Injectable, Inject } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy as CustomStrategy } from 'passport-custom';
 import { Issuer, Client, generators, TokenSet } from 'openid-client';
+import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
-import { AuthConfigService } from '../services/auth-config.service.js';
 
 /**
  * Azure AD OIDC Strategy con PKCE
@@ -22,15 +22,15 @@ export class OidcPkceAzureStrategy extends PassportStrategy(CustomStrategy, 'oid
   private clientPromise: Promise<Client>;
   private readonly provider = 'azure';
 
-  constructor(@Inject(AuthConfigService) private readonly authConfig: AuthConfigService) {
+  constructor(@Inject(ConfigService) private readonly config: ConfigService) {
     super();
     this.clientPromise = this.initializeClient();
   }
 
   private async initializeClient(): Promise<Client> {
-    const issuerUrl = this.authConfig.getIssuer(this.provider);
-    const clientId = this.authConfig.getProviderSetting(this.provider, 'OIDC_CLIENT_ID');
-    const clientSecret = this.authConfig.getProviderSetting(this.provider, 'OIDC_CLIENT_SECRET');
+    const issuerUrl = this.config.get<string>(`OIDC_ISSUER_${this.provider}`);
+    const clientId = this.config.get<string>(`OIDC_CLIENT_ID_${this.provider}`);
+    const clientSecret = this.config.get<string>(`OIDC_CLIENT_SECRET_${this.provider}`);
 
     if (!issuerUrl || !clientId) {
       throw new Error(`Missing OIDC configuration for ${this.provider}`);
@@ -39,10 +39,13 @@ export class OidcPkceAzureStrategy extends PassportStrategy(CustomStrategy, 'oid
     console.log(`🔍 Discovering Azure OIDC endpoints from: ${issuerUrl}`);
     const issuer = await Issuer.discover(issuerUrl);
     
+    const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`) 
+      || `http://localhost:${this.config.get('PORT', 3001)}/auth/${this.provider}/callback`;
+    
     return new issuer.Client({
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uris: [this.authConfig.getRedirectUri(this.provider)],
+      redirect_uris: [redirectUri],
       response_types: ['code'],
       token_endpoint_auth_method: clientSecret ? 'client_secret_post' : 'none',
     });
@@ -63,9 +66,13 @@ export class OidcPkceAzureStrategy extends PassportStrategy(CustomStrategy, 'oid
       if (!session.oidc) session.oidc = {};
       session.oidc[this.provider] = { state, nonce, codeVerifier };
 
+      const scope = this.config.get<string>(`OIDC_SCOPE_${this.provider}`) || 'openid profile email';
+      const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`) 
+        || `http://localhost:${this.config.get('PORT', 3001)}/auth/${this.provider}/callback`;
+
       const authUrl = client.authorizationUrl({
-        scope: this.authConfig.getScope(this.provider),
-        redirect_uri: this.authConfig.getRedirectUri(this.provider),
+        scope,
+        redirect_uri: redirectUri,
         response_type: 'code',
         state,
         nonce,
@@ -87,8 +94,11 @@ export class OidcPkceAzureStrategy extends PassportStrategy(CustomStrategy, 'oid
       }
 
       try {
+        const redirectUri = this.config.get<string>(`OIDC_REDIRECT_URI_${this.provider}`) 
+          || `http://localhost:${this.config.get('PORT', 3001)}/auth/${this.provider}/callback`;
+        
         const tokenSet: TokenSet = await client.callback(
-          this.authConfig.getRedirectUri(this.provider),
+          redirectUri,
           { code: query.code as string, state: query.state as string },
           {
             state: saved.state,

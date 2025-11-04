@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, Res, Inject } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { CookieService } from '../services/cookie.service.js';
-import { AuthConfigService } from '../services/auth-config.service';
+import { ConfigService } from '@nestjs/config';
 import { CceTokenService } from '../services/cce.service.js';
 
 /**
@@ -14,7 +14,7 @@ import { CceTokenService } from '../services/cce.service.js';
 export class CommonAuthController {
   constructor(
     @Inject(CookieService) private readonly publicCookieService: CookieService,
-    @Inject(AuthConfigService) private readonly authConfig: AuthConfigService,
+    @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(CceTokenService) private readonly cceTokenService: CceTokenService
   ) {}
 
@@ -53,7 +53,7 @@ export class CommonAuthController {
     this.publicCookieService.setLoggedOut(res);
 
     // Redirigir al frontend
-    return res.redirect(this.authConfig.getCorsOrigin());
+    return res.redirect(this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000');
   }
 
   /**

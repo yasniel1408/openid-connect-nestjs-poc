@@ -19,9 +19,7 @@ import { AzureCceJwtStrategyV2 } from './strategies/azure-cce-jwt.strategy.OPCIO
 
 // Services
 import { CookieService } from './services/cookie.service.js';
-import { AuthConfigService } from './services/auth-config.service.js';
 import { GetTokenByUserService } from './services/get-token-by-user.service.js';
-import { DiscoveryService } from './services/discovery.service.js';
 import { CceTokenService } from './services/cce.service.js';
 
 // Middleware & Guards
@@ -55,11 +53,9 @@ import { AnyAuthGuard } from './guards/any-auth.guard.js';
   ],
   providers: [
     // Services
-    DiscoveryService,
     CceTokenService,
     GetTokenByUserService,
     CookieService,
-    AuthConfigService,
     // Strategies
     LocalUsernameStrategy,
     LocalJwtStrategy,
@@ -71,6 +67,6 @@ import { AnyAuthGuard } from './guards/any-auth.guard.js';
     SessionSyncMiddleware,
     AnyAuthGuard,
   ],
-  exports: [AnyAuthGuard, SessionSyncMiddleware, CookieService, AuthConfigService],
+  exports: [AnyAuthGuard, SessionSyncMiddleware, CookieService],
 })
 export class AuthModule {}

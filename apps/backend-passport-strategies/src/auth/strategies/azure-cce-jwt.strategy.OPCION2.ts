@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { BearerStrategy, IBearerStrategyOptionWithRequest, ITokenPayload } from 'passport-azure-ad';
-import { AuthConfigService } from '../services/auth-config.service.js';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Estrategia usando passport-azure-ad oficial de Microsoft
@@ -21,23 +21,23 @@ import { AuthConfigService } from '../services/auth-config.service.js';
 
 @Injectable()
 export class AzureCceJwtStrategyV2 extends PassportStrategy(BearerStrategy, 'azure-cce-jwt-v2') {
-  constructor(@Inject(AuthConfigService) private readonly authConfig: AuthConfigService) {
+  constructor(@Inject(ConfigService) private readonly config: ConfigService) {
     const provider = 'azure';
-    const issuer = authConfig.getIssuer(provider);
-    const clientID = authConfig.getProviderSetting(provider, 'OIDC_CLIENT_ID');
-    const audience = authConfig.getProviderSetting(provider, 'OIDC_AUDIENCE');
-    const relaxAudience = authConfig.getBoolean(`OIDC_RELAX_AUDIENCE_${provider}`, true);
-    const clockSkew = Number(authConfig.getProviderSetting(provider, 'OIDC_CLOCK_TOLERANCE')) || 60;
+    const issuer = config.get<string>(`OIDC_ISSUER_${provider}`);
+    const clientID = config.get<string>(`OIDC_CLIENT_ID_${provider}`);
+    const audience = config.get<string>(`OIDC_AUDIENCE_${provider}`);
+    const relaxAudience = config.get<boolean>(`OIDC_RELAX_AUDIENCE_${provider}`, true);
+    const clockSkew = Number(config.get<string>(`OIDC_CLOCK_TOLERANCE_${provider}`)) || 60;
 
     // Extraer tenant ID del issuer
-    const tenantIdMatch = issuer.match(/[0-9a-fA-F-]{36}/);
+    const tenantIdMatch = issuer?.match(/[0-9a-fA-F-]{36}/);
     const tenantIdGuid = tenantIdMatch ? tenantIdMatch[0] : 'common';
 
     const options: IBearerStrategyOptionWithRequest = {
       identityMetadata: `https://login.microsoftonline.com/${tenantIdGuid}/v2.0/.well-known/openid-configuration`,
-      clientID: clientID,
+      clientID: clientID!,
       validateIssuer: true,
-      issuer: issuer,
+      issuer: issuer!,
       audience: relaxAudience ? undefined : audience,
       loggingLevel: 'info',
       passReqToCallback: false,
