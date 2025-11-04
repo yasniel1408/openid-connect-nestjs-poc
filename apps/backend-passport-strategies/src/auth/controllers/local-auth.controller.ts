@@ -17,22 +17,11 @@ export class LocalAuthController {
   @UseGuards(AuthGuard('local-session'))
   async login(@Req() req: Request, @Res() res: Response, @Body() _body: any) {
     const user = req.user;
-
-    // Guardar en sesión Redis
     if ((req as any).session) {
       (req as any).session.user = user;
     }
-
-    // Establecer cookies públicas (logged, user_info)
-    this.publicCookieService.setFromUser(res, user);
-
-    // Generar JWT
     const token = await this.getTokenByUser.execute(user, 'local-session');
-
-    // Establecer cookie con JWT
-    this.publicCookieService.setLoggedIn(res, token, 'local-session');
-
-    // Redirigir al frontend
+    this.publicCookieService.setLoggedIn(res, token, 'local-session', user);
     const corsOrigin = this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000';
     return res.redirect(corsOrigin);
   }

@@ -24,9 +24,7 @@ export class OidcAuthController {
     if ((req as any).session) {
       (req as any).session.user = user;
     }
-    const token = await this.getTokenByUser.execute(user, 'oidc-azure');
-    this.cookieService.setFromUser(res, user);
-    this.cookieService.setLoggedIn(res, token, 'oidc-azure');
+    this.cookieService.setLoggedIn(res, user.tokens.access_token, 'oidc-azure', user);
     return res.redirect(this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000');
   }
 
@@ -42,9 +40,7 @@ export class OidcAuthController {
     if ((req as any).session) {
       (req as any).session.user = user;
     }
-    const token = await this.getTokenByUser.execute(user, 'oidc-google');
-    this.cookieService.setFromUser(res, user);
-    this.cookieService.setLoggedIn(res, token, 'oidc-google');
+    this.cookieService.setLoggedIn(res, user.tokens.access_token, 'oidc-google', user);
     return res.redirect(this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000');
   }
 }

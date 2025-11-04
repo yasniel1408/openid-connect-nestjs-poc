@@ -58,8 +58,7 @@ export class JwtAuthController {
     const newToken = await this.getTokenByUser.execute(user, 'local-jwt');
 
     // Actualizar cookies
-    this.publicCookieService.setFromUser(res, user);
-    this.publicCookieService.setLoggedIn(res, newToken, 'local-jwt');
+    this.publicCookieService.setLoggedIn(res, newToken, 'local-jwt', user);
 
     return res.json({
       success: true,

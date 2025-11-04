@@ -27,12 +27,8 @@ export class CookieService {
     res.clearCookie(this.COOKIE_AXIS_STRATEGY_NAME, this.cookieOptions);
   }
 
-  setLoggedIn(res: Response, session: string, strategy: string) {
+  setLoggedIn(res: Response, session: string, strategy?: string, user?: UserLike | null) {
     res.cookie(this.COOKIE_AXIS_NAME, session, this.cookieOptions);
-    res.cookie(this.COOKIE_AXIS_STRATEGY_NAME, strategy, this.cookieOptions);
-  }
-
-  setFromUser(res: Response, user: UserLike | null | undefined, strategy: string | undefined = undefined) {
     if (!user) {
       this.setLoggedOut(res);
       return;
