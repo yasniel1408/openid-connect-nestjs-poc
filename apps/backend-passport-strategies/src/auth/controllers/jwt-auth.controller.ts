@@ -18,8 +18,14 @@ export class JwtAuthController {
 
   @Post('login')
   async login(@Req() req: Request, @Res() res: Response, @Body() _body: any) {
-
     const user = USERS.find(u => u.username === req.body.username && u.password === req.body.password);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials',
+      });
+    }
 
     // Generar JWT
     const token = await this.getTokenByUser.execute(user, 'local-jwt');
@@ -46,8 +52,8 @@ export class JwtAuthController {
   @Post('refresh')
   @UseGuards(AuthGuard('local-jwt'))
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const user = req.user;
-    console.log('🔄 Renovando JWT para usuario:', user.id);
+    const user = req.user as any;
+    console.log('🔄 Renovando JWT para usuario:', user?.id);
 
     // Generar nuevo JWT
     const newToken = await this.getTokenByUser.execute(user, 'local-jwt');

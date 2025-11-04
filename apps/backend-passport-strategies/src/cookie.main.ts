@@ -75,7 +75,7 @@ export class CookieSessionConfig {
 
     // Si Redis está disponible, usar RedisStore
     if (this.redisClient) {
-      const redisStore = new RedisStore({
+      const redisStore: any = new (RedisStore as any)({
         client: this.redisClient,
         prefix: 'session:',
         ttl: maxAge / 1000, // TTL en segundos

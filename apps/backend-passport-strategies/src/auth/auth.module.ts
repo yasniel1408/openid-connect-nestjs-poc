@@ -18,7 +18,6 @@ import { AzureCceJwtStrategyV1 } from './strategies/azure-cce-jwt.strategy.js';
 import { AzureCceJwtStrategyV2 } from './strategies/azure-cce-jwt.strategy.OPCION2.js';
 
 // Services
-import { OidcService } from './services/oidc.service.js';
 import { CookieService } from './services/cookie.service.js';
 import { AuthConfigService } from './services/auth-config.service.js';
 import { GetTokenByUserService } from './services/get-token-by-user.service.js';
@@ -57,7 +56,6 @@ import { AnyAuthGuard } from './guards/any-auth.guard.js';
   providers: [
     // Services
     DiscoveryService,
-    OidcService,
     CceTokenService,
     GetTokenByUserService,
     CookieService,

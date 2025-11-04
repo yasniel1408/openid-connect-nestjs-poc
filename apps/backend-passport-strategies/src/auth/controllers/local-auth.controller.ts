@@ -35,5 +35,4 @@ export class LocalAuthController {
     // Redirigir al frontend
     return res.redirect(this.authConfig.getCorsOrigin());
   }
-
 }
