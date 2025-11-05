@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy as JwtStrategy, ExtractJwt, JwtFromRequestFunction } from 'passport-jwt';
+import { Strategy, ExtractJwt, JwtFromRequestFunction } from 'passport-jwt';
 import type { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -11,7 +11,7 @@ export const cookieExtractor: JwtFromRequestFunction = (req: Request | undefined
 };
 
 @Injectable()
-export class LocalJwtStrategy extends PassportStrategy(JwtStrategy, 'local-jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(@Inject(ConfigService) config: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -34,7 +34,7 @@ export class LocalJwtStrategy extends PassportStrategy(JwtStrategy, 'local-jwt')
       email: payload.email,
       name: payload.name,
       roles: payload.roles || [],
-      identityProvider: payload.iss || 'local-jwt',
+      identityProvider: payload.iss || 'jwt',
     };
   }
 }

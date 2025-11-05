@@ -1,12 +1,12 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ExtractJwt } from 'passport-jwt';
-import { cookieExtractor } from '../strategies/local-jwt.strategy';
+import { cookieExtractor } from '../strategies/jwt.strategy';
 
 @Injectable()
 export class AnyAuthGuard implements CanActivate {
   private readonly cceGuard = new (AuthGuard('azure-cce-jwt'))();
-  private readonly jwtGuard = new (AuthGuard('local-jwt'))();
+  private readonly jwtGuard = new (AuthGuard('jwt'))();
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();

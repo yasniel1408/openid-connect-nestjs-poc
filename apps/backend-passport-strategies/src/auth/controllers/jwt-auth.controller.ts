@@ -28,11 +28,10 @@ export class JwtAuthController {
     }
 
     // Generar JWT
-    const token = await this.getTokenByUser.execute(user, 'local-jwt');
+    const token = await this.getTokenByUser.execute(user, 'jwt');
 
-    // Establecer cookies (opcional, para navegadores)
-    this.publicCookieService.setFromUser(res, user);
-    this.publicCookieService.setLoggedIn(res, token, 'local-jwt');
+    // Establecer cookie con JWT (opcional, para navegadores)
+    this.publicCookieService.setLoggedIn(res, token, 'jwt', user);
 
     // Retornar JWT en respuesta JSON
     return res.json({
@@ -50,15 +49,15 @@ export class JwtAuthController {
   }
 
   @Post('refresh')
-  @UseGuards(AuthGuard('local-jwt'))
+  @UseGuards(AuthGuard('jwt'))
   async refresh(@Req() req: Request, @Res() res: Response) {
     const user = req.user as any;
 
     // Generar nuevo JWT
-    const newToken = await this.getTokenByUser.execute(user, 'local-jwt');
+    const newToken = await this.getTokenByUser.execute(user, 'jwt');
 
     // Actualizar cookies
-    this.publicCookieService.setLoggedIn(res, newToken, 'local-jwt', user);
+    this.publicCookieService.setLoggedIn(res, newToken, 'jwt', user);
 
     return res.json({
       success: true,

@@ -11,7 +11,7 @@ import { CommonAuthController } from './controllers/common-auth.controller';
 
 // Strategies
 import { LocalSessionStrategy } from './strategies/local-session.strategy';
-import { LocalJwtStrategy } from './strategies/local-jwt.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 import { OidcPkceAzureStrategy } from './strategies/oidc-pkce-azure.strategy';
 import { OidcPkceGoogleStrategy } from './strategies/oidc-pkce-google.strategy';
 import { AzureCceJwtStrategy } from './strategies/azure-cce-jwt.strategy';
@@ -56,7 +56,7 @@ import { AnyAuthGuard } from './guards/any-auth.guard';
     CookieService,
     // Strategies
     LocalSessionStrategy,
-    LocalJwtStrategy,
+    JwtStrategy,
     OidcPkceAzureStrategy,
     OidcPkceGoogleStrategy,
     AzureCceJwtStrategy,
