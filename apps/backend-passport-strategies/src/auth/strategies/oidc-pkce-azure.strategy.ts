@@ -37,7 +37,6 @@ export class OidcPkceAzureStrategy extends PassportStrategy(OpenIDConnectStrateg
         scope,
         passReqToCallback: true, // ✅ CLAVE: Esto hace que recibas todos los tokens
       },
-      // ✅ Verify callback con 8 parámetros cuando passReqToCallback: true
       (
         req: Request,
         issuer: string,

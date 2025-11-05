@@ -22,7 +22,6 @@ import { GetTokenByUserService } from './services/get-token-by-user.service';
 import { CceTokenService } from './services/cce.service';
 
 // Middleware & Guards
-import { SessionSyncMiddleware } from './middleware/session-sync.middleware';
 import { AnyAuthGuard } from './guards/any-auth.guard';
 
 @Module({
@@ -61,9 +60,8 @@ import { AnyAuthGuard } from './guards/any-auth.guard';
     OidcPkceGoogleStrategy,
     AzureCceJwtStrategy,
     // Middleware & Guards
-    SessionSyncMiddleware,
     AnyAuthGuard,
   ],
-  exports: [AnyAuthGuard, SessionSyncMiddleware, CookieService],
+  exports: [AnyAuthGuard, CookieService],
 })
 export class AuthModule {}

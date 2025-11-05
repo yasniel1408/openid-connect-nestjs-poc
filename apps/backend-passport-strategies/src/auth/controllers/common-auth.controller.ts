@@ -3,13 +3,8 @@ import type { Request, Response } from 'express';
 import { CookieService } from '../services/cookie.service.js';
 import { ConfigService } from '@nestjs/config';
 import { CceTokenService } from '../services/cce.service.js';
+import { Session } from 'express-session';
 
-/**
- * Controller para endpoints comunes de autenticación
- * - Información del usuario autenticado
- * - Logout
- * - Client Credentials (para sistemas/servicios)
- */
 @Controller('auth')
 export class CommonAuthController {
   constructor(
@@ -18,41 +13,39 @@ export class CommonAuthController {
     @Inject(CceTokenService) private readonly cceTokenService: CceTokenService
   ) {}
 
-  /**
-   * Obtener información del usuario autenticado
-   * GET /auth/me
-   *
-   * Retorna el usuario de la sesión actual
-   * No requiere guard específico, busca en req.user o req.session
-   */
-  @Get('me')
-  me(@Req() req: Request) {
+  @Get('ping')
+  async ping(@Req() req: Request, @Res() res: Response) {
+    const session: any = (req as any).session;
+
+    if (!session['user']) {
+      if (session) session.destroy(() => {});
+      this.publicCookieService.setLoggedOut(res);
+      return res.status(401).json({
+        message: 'pong',
+        session: { active: false }
+      });
+    }
+
+    // ✅ Touch renueva el TTL de Redis automáticamente
+    session.touch();
+
+    // Guardar la sesión actualizada en Redis
+    return res.status(200).json({
+      message: 'pong',
+      session: { active: true }
+    });
+  }
+
+  @Get('user_info')
+  userInfo(@Req() req: Request) {
     return (req as any).user || (req as any).session?.user || null;
   }
 
-  /**
-   * Cerrar sesión (Logout)
-   * GET /auth/logout
-   *
-   * Flow:
-   * 1. Destruye sesión en Redis
-   * 2. Limpia cookies del navegador
-   * 3. Si es OIDC (Azure/Google), redirige a endpoint de logout del provider
-   * 4. Si es local, redirige al frontend
-   */
   @Get('logout')
   async logout(@Req() req: Request, @Res() res: Response) {
-    const sess: any = (req as any).session;
-    const provider = sess?.user?.provider as string | undefined;
-    const idToken = sess?.user?.tokens?.id_token as string | undefined;
-
-    // Destruir sesión en Redis
-    if (sess) sess.destroy(() => {});
-
-    // Limpiar cookies
+    const session: any = (req as any).session;
+    if (session) session.destroy(() => {});
     this.publicCookieService.setLoggedOut(res);
-
-    // Redirigir al frontend
     return res.redirect(this.config.get<string>('CORS_ORIGIN') || 'http://localhost:3000');
   }
 
