@@ -3,7 +3,6 @@ import type { Request, Response } from 'express';
 import { CookieService } from '../services/cookie.service.js';
 import { ConfigService } from '@nestjs/config';
 import { CceTokenService } from '../services/cce.service.js';
-import { Session } from 'express-session';
 
 @Controller('auth')
 export class CommonAuthController {
@@ -17,6 +16,8 @@ export class CommonAuthController {
   async ping(@Req() req: Request, @Res() res: Response) {
     const session: any = (req as any).session;
 
+    console.log('ping', session);
+
     if (!session['user']) {
       if (session) session.destroy(() => {});
       this.publicCookieService.setLoggedOut(res);
@@ -27,7 +28,7 @@ export class CommonAuthController {
     }
 
     // ✅ Touch renueva el TTL de Redis automáticamente
-    session.touch();
+    session.touch(() => {});
 
     // Guardar la sesión actualizada en Redis
     return res.status(200).json({
