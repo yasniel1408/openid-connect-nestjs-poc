@@ -16,9 +16,7 @@ export class CommonAuthController {
   async ping(@Req() req: Request, @Res() res: Response) {
     const session: any = (req as any).session;
 
-    console.log('ping', session);
-
-    if (!session['user']) {
+    if (!session || !session.user) {
       if (session) session.destroy(() => {});
       this.publicCookieService.setLoggedOut(res);
       return res.status(401).json({
@@ -27,13 +25,39 @@ export class CommonAuthController {
       });
     }
 
-    // ✅ Touch renueva el TTL de Redis automáticamente
-    session.touch(() => {});
+    // 🔄 Renovar cookie: actualizar maxAge y expires
+    const maxAge = Number(this.config.get<string>('SESSION_COOKIE_MAX_AGE') || '3600000');
+    session.cookie.maxAge = maxAge;
+    session.cookie.expires = new Date(Date.now() + maxAge);
 
-    // Guardar la sesión actualizada en Redis
-    return res.status(200).json({
-      message: 'pong',
-      session: { active: true }
+    // ✅ Touch actualiza lastModified para TTL de Redis
+    session.touch();
+
+    // 💾 Guardar explícitamente en Redis (con promesa para asegurar)
+    return new Promise((resolve) => {
+      session.save((err: any) => {
+        if (err) {
+          console.error('❌ Error guardando sesión en ping:', err);
+          return resolve(
+            res.status(500).json({
+              message: 'pong',
+              session: { active: true, error: 'failed to save session' }
+            })
+          );
+        }
+
+        resolve(
+          res.status(200).json({
+            message: 'pong',
+            session: {
+              active: true,
+              renewed: true,
+              expiresAt: session.cookie.expires,
+              maxAge: session.cookie.maxAge
+            }
+          })
+        );
+      });
     });
   }
 

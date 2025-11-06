@@ -31,7 +31,7 @@ export class JwtAuthController {
     const token = await this.getTokenByUser.execute(user, 'jwt');
 
     // Establecer cookie con JWT (opcional, para navegadores)
-    this.publicCookieService.setLoggedIn(res, token, 'jwt', user);
+    this.publicCookieService.setLoggedIn(res, 'jwt', user);
 
     // Retornar JWT en respuesta JSON
     return res.json({
@@ -57,7 +57,7 @@ export class JwtAuthController {
     const newToken = await this.getTokenByUser.execute(user, 'jwt');
 
     // Actualizar cookies
-    this.publicCookieService.setLoggedIn(res, newToken, 'jwt', user);
+    this.publicCookieService.setLoggedIn(res, 'jwt', user);
 
     return res.json({
       success: true,

@@ -63,13 +63,14 @@ export class CookieSessionConfig {
     const sessionConfig: session.SessionOptions = {
       name: sessionCookieName,
       secret: sessionSecret,
-      resave: false,
-      saveUninitialized: false,
+      resave: false,            // No guardar si no hay cambios (excepto con touch/save explícito)
+      saveUninitialized: false, // No crear sesión hasta que haya datos
+      rolling: true,            // ✅ Renovar cookie en cada request activo
       cookie: {
         httpOnly: true,
         sameSite,
         secure: secureFlag,
-        maxAge,
+        maxAge,                 // ✅ Este se actualiza en cada request cuando rolling=true
       },
     };
 
@@ -77,11 +78,16 @@ export class CookieSessionConfig {
     if (this.redisClient) {
       const redisStore: any = new (RedisStore as any)({
         client: this.redisClient,
-        prefix: 'session:',
-        ttl: maxAge / 1000, // TTL en segundos
+        prefix: 'axis-session:',
+        ttl: maxAge / 1000,      // TTL base en segundos (1 hora = 3600s)
+        disableTouch: false,     // ✅ Permitir touch() para actualizar TTL
+        disableTTL: false,       // ✅ Usar TTL de Redis
       });
       sessionConfig.store = redisStore;
       console.log('📦 Using Redis session store');
+      console.log(`   - TTL: ${maxAge / 1000}s (${maxAge}ms)`);
+      console.log(`   - Prefix: axis-session:`);
+      console.log(`   - Touch enabled: true`);
     } else {
       console.warn('⚠️  Using in-memory session store (sessions will be lost on restart)');
     }
